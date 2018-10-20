@@ -1,0 +1,180 @@
+---
+title: "hw05-MaunishUBC"
+output: github_document
+editor_options:
+  chunk_output_type: inline
+---
+
+### Install necessary packages ###
+```{r}
+library('gapminder')
+library('kableExtra')
+library('RColorBrewer')
+library('plotly')
+library('dplyr')
+library('forcats')
+```
+
+### Factor management ###
+
+
+What are the continent's in gapminder
+```{r}
+unique(gapminder$continent)
+```
+
+Oceania isn't a continent! Let's drop it!!
+```{r}
+gapminder_no_oceania <- gapminder %>% 
+  filter(continent != "Oceania")
+
+```
+
+Also let's see what countries are there in Oceania
+```{r}
+gapminder %>% 
+  filter(continent == "Oceania") %>% 
+  kable() %>%
+  kable_styling()
+```
+So, Oceania has two countries, Australia and New Zealand.
+
+```{r}
+
+gapminder %>% 
+  str()
+ 
+```
+So, gapminder has 142 levels for countires and 5 levels for continent
+
+Let's see what happens after removing Oceania
+```{r}
+gapminder_no_oceania <- gapminder_no_oceania %>% 
+  droplevels()
+
+gapminder_no_oceania %>% 
+  str()
+```
+There are 140 countries and 4 continents. 
+
+The 4 continents make sense but why 140 countries? Where did 2 countries go?
+
+Let's look at the differnce between gapminder_no_oceania and gapminder:
+```{r}
+anti_join(gapminder, gapminder_no_oceania, by = "country") %>% 
+  kable() %>% 
+  kable_styling()
+```
+So, I'd like to reorder the countries in gapminder_no_oceania based on a modified metric which includes lifeeExp and gdpPercap 
+
+So, *ideal* will be the new varialbe = lifeExp/max(lifeExp)*log(gdpPercap)/max(log(gdpPercap))
+
+```{r}
+gapminder_ideal <- gapminder_no_oceania %>% 
+  mutate(ideal = lifeExp/max(lifeExp)*log(gdpPercap)/max(log(gdpPercap))) %>% 
+  arrange(desc(ideal))
+
+gapminder_ideal %>% 
+  kable() %>% 
+  kable_styling()
+```
+
+Let's explore the factors in gapminder_ideal
+```{r}
+gapminder_ideal %>% 
+  str()
+```
+
+So, the factor list is yet ordered alphabetically.
+
+Let's change that based on our *ideal* metric:
+```{r}
+gapminder_ideal <- gapminder_ideal %>% 
+  mutate(country = fct_reorder(country, desc(ideal)))
+
+gapminder_ideal %>% str()
+
+```
+
+### File I/O
+
+Let's look at Oceania Now: 
+
+```{r}
+gapminder_oceania <- gapminder %>% 
+  filter(continent == "Oceania") %>% 
+  droplevels()
+
+gapminder_oceania %>% 
+  str()
+```
+
+Let's reorder it by smallest to highest lifeExp 
+```{r}
+gapminder_oceania <- gapminder_oceania %>% 
+  mutate(country = fct_reorder(country, lifeExp))
+
+gapminder_oceania %>% 
+  str()
+```
+
+Let's write this as a csv 
+```{r}
+gapminder_oceania_data <- tempfile()
+write_csv(gapminder_oceania, 'oceania_data.csv')
+```
+
+Let's read it back and genrate the table
+```{r}
+read_csv('oceania_data.csv') %>% 
+  kable() %>% 
+  kable_styling()
+```
+
+### Visualization design ###
+
+Let's look at the ideal scale for the continents in gapminder_ideal for the year 2007: 
+
+```{r}
+gapminder_ideal %>% 
+  filter(year == 2007) %>% 
+  ggplot(aes(x = continent, y = ideal)) +
+  geom_violin()
+
+```
+
+Let's get each country on here and colour it based on it's population 
+
+```{r}
+ideal_plot <- gapminder_ideal %>% 
+  filter(year == 2007) %>% 
+  ggplot(aes(x = continent, y = ideal)) +
+  geom_violin(aes(fill = continent)) + 
+  geom_point(aes(colour=pop)) +
+  scale_colour_continuous(trans="log10") +
+  labs(title = "Ideal metric for each of the continents") + 
+   theme_bw() +
+    theme(axis.text = element_text(size = 16),
+          strip.background = element_rect(fill = "orange"),
+          panel.background = element_rect(fill = "pink"))
+
+ideal_plot
+  
+```
+
+Let's make this a plotly object.
+```{r}
+ideal_plot %>% 
+    ggplotly()
+```
+We can hover over each of the data points
+
+
+### Save the figure
+
+```{r}
+ggsave("gapminder_ideal_plot.png", plot = ideal_plot, width = 5 , height = 4 , scale = 1)
+```
+
+![Maunish's ideal plot] (Macintosh HD⁩ ▸ ⁨Users⁩ ▸ ⁨maunishbarvalia⁩ ▸ ⁨Documents⁩ ▸ ⁨work⁩ ▸ ⁨STAT545⁩ ▸ ⁨hw05-MaunishUCB/gapminder_ideal_plot.pnC⁩)
+
