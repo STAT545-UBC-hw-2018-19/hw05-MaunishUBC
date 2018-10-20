@@ -1,8 +1,8 @@
 ---
 title: "hw05-MaunishUBC"
 output: github_document
-editor_options:
-  chunk_output_type: inline
+always_allow_html: yes
+
 ---
 
 ### Install necessary packages ###
@@ -13,6 +13,7 @@ library('RColorBrewer')
 library('plotly')
 library('dplyr')
 library('forcats')
+library('readr')
 ```
 
 ### Factor management ###
@@ -176,5 +177,7 @@ We can hover over each of the data points
 ggsave("gapminder_ideal_plot.png", plot = ideal_plot, width = 5 , height = 4 , scale = 1)
 ```
 
-![Maunish's ideal plot] (Macintosh HD⁩ ▸ ⁨Users⁩ ▸ ⁨maunishbarvalia⁩ ▸ ⁨Documents⁩ ▸ ⁨work⁩ ▸ ⁨STAT545⁩ ▸ ⁨hw05-MaunishUCB/gapminder_ideal_plot.pnC⁩)
+This image was stored on my computer: 
+
+![Maunish's final plot](gapminder_ideal_plot.png)
 
